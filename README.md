@@ -1,2 +1,2 @@
 # resolve-callback
-Callback returns promise.
+Callback with promise.

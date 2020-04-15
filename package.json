@@ -1,0 +1,34 @@
+{
+  "name": "@volkovasystem/resolve-callback",
+  "version": "0.0.0",
+  "description": "Callback with promise.",
+  "main": "resolve-callback.js",
+  "scripts": {
+    "test": "test resolve-callback.test.js",
+    "minify-module": "npx terser resolve-callback.module.js --compress --output resolve-callback.js",
+    "modularize": "npx babel --plugins @babel/plugin-transform-modules-umd resolve-callback.js --out-file resolve-callback.js",
+    "minify": "npx terser resolve-callback.js --compress --output resolve-callback.js",
+    "build": "npm run minify-module && npm run modularize && npm run minify",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volkovasystem/resolve-callback.git"
+  },
+  "keywords": [
+    "resolve-callback",
+    "callback",
+    "promise"
+  ],
+  "author": "Richeve S. Bebedor <richeve.bebedor@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/volkovasystem/resolve-callback/issues"
+  },
+  "homepage": "https://github.com/volkovasystem/resolve-callback#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-transform-modules-umd": "^7.9.0"
+  }
+}
