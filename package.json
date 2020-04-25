@@ -4,12 +4,14 @@
   "description": "Callback with promise.",
   "main": "resolve-callback.js",
   "scripts": {
-    "test": "test resolve-callback.test.js",
-    "minify-module": "npx terser resolve-callback.module.js --compress --output resolve-callback.js",
-    "modularize": "npx babel --plugins @babel/plugin-transform-modules-umd resolve-callback.js --out-file resolve-callback.js",
-    "minify": "npx terser resolve-callback.js --compress --output resolve-callback.js",
+    "test": "node ./resolve-callback.test.js",
+    "clean": "rm -Rfv ./node_modules && rm ./resolve-callback.js",
+    "minify-module": "npx terser ./resolve-callback.module.js --compress --output ./resolve-callback.js",
+    "modularize": "npx babel --plugins @babel/plugin-transform-modules-umd ./resolve-callback.js --out-file ./resolve-callback.js",
+    "minify": "npx terser ./resolve-callback.js --compress --output ./resolve-callback.js",
     "build": "npm run minify-module && npm run modularize && npm run minify",
-    "prepublishOnly": "npm run build"
+    "deploy": "npm run clean && npm install && npm run build && npm test",
+    "prepublishOnly": "npm run clean && npm install && npm run build && npm test"
   },
   "repository": {
     "type": "git",
