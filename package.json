@@ -1,36 +1,36 @@
 {
-  "name": "@volkovasystem/resolve-callback",
-  "version": "0.0.1",
-  "description": "Callback with promise.",
-  "main": "resolve-callback.js",
-  "scripts": {
-    "test": "node ./resolve-callback.test.js",
-    "clean": "rm -Rfv ./node_modules && rm ./resolve-callback.js",
-    "compress": "npx terser ./resolve-callback.module.js --compress --comments all --output ./resolve-callback.js",
-    "modularize": "npx babel --plugins @babel/plugin-transform-modules-umd ./resolve-callback.js --out-file ./resolve-callback.js",
-    "minify": "npx terser ./resolve-callback.js --compress --comments all --output ./resolve-callback.js",
-    "build": "npm run compress && npm run modularize && npm run minify",
-    "deploy": "npm run clean && npm install && npm run build && npm test",
-    "prepublishOnly": "npm run clean && npm install && npm run build && npm test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/volkovasystem/resolve-callback.git"
-  },
-  "keywords": [
-    "resolve-callback",
-    "callback",
-    "promise"
-  ],
-  "author": "Richeve S. Bebedor <richeve.bebedor@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/volkovasystem/resolve-callback/issues"
-  },
-  "homepage": "https://github.com/volkovasystem/resolve-callback#readme",
-  "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/plugin-transform-modules-umd": "^7.9.0"
-  }
+	"name": "@volkovasystem/resolve-callback",
+	"alias": "resolve-callback",
+	"version": "0.0.2",
+	"description": "Callback with promise.",
+	"main": "resolve-callback.js",
+	"scripts": {
+		"clean": "rm -rf ./node_modules || true && rm -fv ./package-lock.json || true && npm cache clean --force",
+		"reset": "npm run clean && rm -rfv ./resolve-callback.js || true && rm -rfv ./.build || true && rm -rfv ./.test || true",
+		"bundle": "npx parcel build ./*.module.js --no-cache --no-source-maps --no-minify --out-dir ./.build --out-file ./resolve-callback.bundle.js --global resolveCallback",
+		"compress": "npx terser ./.build/resolve-callback.bundle.js --compress --keep-classnames --keep-fnames --output ./.build/resolve-callback.js",
+		"resolve": "mv ./.build/resolve-callback.js ./resolve-callback.js && rm -rfv ./.build || true",
+		"build": "npm run bundle && npm run compress && npm run resolve",
+		"test": "node ./resolve-callback.test.js",
+		"stage": "npm run reset && npm install && npm run build && npm test && npm run clean",
+		"prepublishOnly": "npm run stage"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/volkovasystem/resolve-callback.git"
+	},
+	"keywords": [
+		"resolve-callback",
+		"resolve",
+		"callback"
+	],
+	"author": "Richeve S. Bebebdor <richeve.bebedor@gmail.com>",
+	"contributors": [
+		"Richeve S. Bebebdor <richeve.bebedor@gmail.com>"
+	],
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/volkovasystem/resolve-callback/issues"
+	},
+	"homepage": "https://github.com/volkovasystem/resolve-callback#readme"
 }
