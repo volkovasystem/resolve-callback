@@ -57,6 +57,15 @@ const resolveCallback = (
 					@description;
 				@parameter;
 
+				@parameter:#reference
+					@type:
+							function
+					@type;
+
+					@description:
+					@description;
+				@parameter;
+
 				@result:#result
 					@type:
 							function
@@ -79,8 +88,6 @@ const resolveCallback = (
 				@trigger;
 			@definition;
 		*/
-
-		const util = require( "util" );
 
 		const EventEmitter = require( "events" );
 
@@ -123,7 +130,7 @@ const resolveCallback = (
 											"invalid callback parameter;",
 
 											"@callback:",
-											`${ util.inspect( callback ) };`
+											`${ callback };`
 										]
 									)
 								)
@@ -429,7 +436,7 @@ const resolveCallback = (
 										"cannot execute resolve callback;",
 
 										"@error-data:",
-										`${ util.inspect( error ) };`
+										`${ error };`
 									]
 								)
 							)
