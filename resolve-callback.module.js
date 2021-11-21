@@ -39,7 +39,7 @@ const RESOLVE_CALLBACK = (
 );
 
 const resolveCallback = (
-	function resolveCallback( callback ){
+	function resolveCallback( callback, reference ){
 		/*;
 			@definition:
 				@procedure:#resolveCallback
@@ -80,7 +80,33 @@ const resolveCallback = (
 			@definition;
 		*/
 
+		const util = require( "util" );
+
+		const EventEmitter = require( "events" );
+
 		try{
+			(
+					callback
+				=	(
+							(
+								callback
+							)
+						||
+							(
+								function( ){
+									return	(
+												Array
+												.from(
+													(
+														arguments
+													)
+												)
+											);
+								}
+							)
+					)
+			);
+
 			if(
 					(
 							typeof
@@ -97,7 +123,7 @@ const resolveCallback = (
 											"invalid callback parameter;",
 
 											"@callback:",
-											`${ callback };`
+											`${ util.inspect( callback ) };`
 										]
 									)
 								)
@@ -115,58 +141,281 @@ const resolveCallback = (
 						);
 			}
 
-			return	(
-						new	Proxy(
-								(
-									callback
-								),
-
-								(
-									{
-										"apply": (
-											function apply( callback, scope, parameterList ){
-												return	(
-															Promise
-															.resolve(
-																(
-																	callback
-																	.apply(
-																		(
-																			scope
-																		),
-
-																		(
-																			parameterList
-																		)
-																	)
-																)
-															)
-														);
-											}
-										),
-
-										"get": (
-											function get( callback, property, value, target ){
-												if(
-														(
-																property
-															===	RESOLVE_CALLBACK
-														)
-												){
-													return	(
-																true
-															);
-												}
-												else{
-													return	(
-																callback[ property ]
-															);
-												}
-											}
+			(
+					reference
+				=	(
+							(
+								Array
+								.from(
+									(
+										arguments
+									)
+								)
+								.find(
+									(
+										( parameter ) => (
+												(
+														typeof
+														parameter
+													==	"string"
+												)
 										)
-									}
+									)
 								)
 							)
+						||
+							(
+								`[@temporary-reference:${ Date.now( ) }-${ Math.random( ) }]`
+							)
+					)
+			);
+
+			const self = (
+				this
+			);
+
+			const callbackPromiseEmitter = (
+				new	EventEmitter( )
+			);
+
+			const callbackPromise = (
+				new	Promise(
+						function( resolveHandler, rejectHandler ){
+							callbackPromiseEmitter
+							.once(
+								(
+									`resolve-callback-${ reference }`
+								),
+
+								function( ){
+									resolveHandler
+									.call(
+										(
+											self
+										),
+
+										(
+											Array
+											.from(
+												(
+													arguments
+												)
+											)
+										)
+									);
+								}
+							);
+
+							callbackPromiseEmitter
+							.once(
+								(
+									`reject-callback-${ reference }`
+								),
+
+								function( ){
+									rejectHandler
+									.call(
+										(
+											self
+										),
+
+										(
+											Array
+											.from(
+												(
+													arguments
+												)
+											)
+										)
+									);
+								}
+							);
+						}
+					)
+			);
+
+			const	{
+						proxy: revocableCallback,
+						revoke: revokeCallback
+					}
+				=	(
+						Proxy
+						.revocable(
+							(
+								callback
+							),
+
+							(
+								{
+									"apply": (
+										function apply( callback, scope, parameterList ){
+											try{
+												const result = (
+													callback
+													.apply(
+														(
+																(
+																	scope
+																)
+															||
+																(
+																	self
+																)
+														),
+
+														(
+															parameterList
+														)
+													)
+												);
+
+												EventEmitter
+												.prototype
+												.emit
+												.apply(
+													(
+														callbackPromiseEmitter
+													),
+
+													(
+														[
+															(
+																`resolve-callback-${ reference }`
+															)
+														]
+														.concat(
+															(
+																	(
+																		result
+																	)
+																||
+																	(
+																		parameterList
+																	)
+															)
+														)
+													)
+												);
+
+												return	(
+																(
+																	result
+																)
+															||
+																(
+																	parameterList
+																)
+														);
+											}
+											catch( error ){
+												const result = (
+													[
+														error,
+													]
+													.concat(
+														(
+															parameterList
+														)
+													)
+												);
+
+												EventEmitter
+												.prototype
+												.emit
+												.apply(
+													(
+														callbackPromiseEmitter
+													),
+
+													(
+														[
+															(
+																`reject-callback-${ reference }`
+															)
+														]
+														.concat(
+															(
+																result
+															)
+														)
+													)
+												);
+
+												return	(
+															result
+														);
+											}
+										}
+									),
+
+									"get": (
+										function get( callback, property, value, target ){
+											if(
+													(
+															property
+														===	RESOLVE_CALLBACK
+													)
+											){
+												return	(
+															true
+														);
+											}
+											else if(
+													(
+															property
+														===	"promise"
+													)
+											){
+												return	(
+															callbackPromise
+														);
+											}
+											else if(
+													(
+															property
+														===	"once"
+													)
+											){
+												callbackPromiseEmitter
+												.once(
+													(
+														`resolve-callback-${ reference }`
+													),
+
+													function( ){
+														setImmediate( revokeCallback );
+													}
+												);
+
+												callbackPromiseEmitter
+												.once(
+													(
+														`reject-callback-${ reference }`
+													),
+
+													function( ){
+														setImmediate( revokeCallback );
+													}
+												);
+
+												return	(
+															revocableCallback
+														);
+											}
+											else{
+												return	(
+															callback[ property ]
+														);
+											}
+										}
+									)
+								}
+							)
+						)
+					);
+
+			return	(
+						revocableCallback
 					);
 		}
 		catch( error ){
@@ -180,7 +429,7 @@ const resolveCallback = (
 										"cannot execute resolve callback;",
 
 										"@error-data:",
-										`${ error };`
+										`${ util.inspect( error ) };`
 									]
 								)
 							)
@@ -189,4 +438,10 @@ const resolveCallback = (
 	}
 );
 
-module.exports = resolveCallback;
+(
+		module
+		.exports
+	=	(
+			resolveCallback
+		)
+);
