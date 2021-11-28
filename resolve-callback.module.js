@@ -39,7 +39,7 @@ const RESOLVE_CALLBACK = (
 );
 
 const resolveCallback = (
-	function resolveCallback( callback, reference ){
+	function resolveCallback( callback, option ){
 		/*;
 			@definition:
 				@procedure:#resolveCallback
@@ -57,9 +57,9 @@ const resolveCallback = (
 					@description;
 				@parameter;
 
-				@parameter:#reference
+				@parameter:#option
 					@type:
-							function
+							object
 					@type;
 
 					@description:
@@ -89,7 +89,10 @@ const resolveCallback = (
 			@definition;
 		*/
 
-		const EventEmitter = require( "events" );
+		const eventEmitter = (
+			resolveCallback
+			.getEventEmitter( )
+		);
 
 		try{
 			(
@@ -149,40 +152,114 @@ const resolveCallback = (
 			}
 
 			(
-					reference
+					option
 				=	(
 							(
-								Array
-								.from(
-									(
-										arguments
-									)
-								)
-								.find(
-									(
-										( parameter ) => (
-												(
-														typeof
-														parameter
-													==	"string"
-												)
-										)
-									)
-								)
+								option
 							)
 						||
 							(
-								`[@temporary-reference:${ Date.now( ) }-${ Math.random( ) }]`
+								{ }
 							)
 					)
 			);
 
-			const self = (
-				this
+			const reference = (
+				(
+						(
+							Array
+							.from(
+								(
+									arguments
+								)
+							)
+							.find(
+								(
+									( parameter ) => (
+											(
+													typeof
+													parameter
+												==	"string"
+											)
+									)
+								)
+							)
+						)
+					||
+						(
+								(
+										(
+												typeof
+												option
+												.reference
+											==	"string"
+										)
+									&&
+										(
+												option
+												.reference
+												.length
+											>	0
+										)
+								)
+							?	(
+									option
+									.reference
+								)
+							:	(
+									undefined
+								)
+						)
+					||
+						(
+							`[@temporary-reference:${ Date.now( ) }-${ Math.random( ) };]`
+						)
+				)
+			);
+
+			const selfScope = (
+					(
+							(
+									Object
+									.values(
+										(
+											option
+										)
+									)
+									.length
+								>	0
+							)
+					)
+				?	(
+							(
+									(
+											typeof
+											option
+											.scope
+										==	"object"
+									)
+								&&
+									(
+											option
+											.scope
+										!==	null
+									)
+							)
+						?	(
+								option
+								.scope
+							)
+						:	(
+								option
+							)
+					)
+				:	(
+						this
+					)
 			);
 
 			const callbackPromiseEmitter = (
-				new	EventEmitter( )
+				eventEmitter
 			);
 
 			const callbackPromise = (
@@ -198,7 +275,7 @@ const resolveCallback = (
 									resolveHandler
 									.call(
 										(
-											self
+											selfScope
 										),
 
 										(
@@ -223,7 +300,7 @@ const resolveCallback = (
 									rejectHandler
 									.call(
 										(
-											self
+											selfScope
 										),
 
 										(
@@ -266,7 +343,7 @@ const resolveCallback = (
 																)
 															||
 																(
-																	self
+																	selfScope
 																)
 														),
 
@@ -276,7 +353,8 @@ const resolveCallback = (
 													)
 												);
 
-												EventEmitter
+												eventEmitter
+												.constructor
 												.prototype
 												.emit
 												.apply(
@@ -326,7 +404,8 @@ const resolveCallback = (
 													)
 												);
 
-												EventEmitter
+												eventEmitter
+												.constructor
 												.prototype
 												.emit
 												.apply(
@@ -443,6 +522,42 @@ const resolveCallback = (
 					);
 		}
 	}
+);
+
+(
+		resolveCallback
+		.setEventEmitter
+	=	(
+			function setEventEmitter( eventEmitter ){
+				if(
+
+				)
+				(
+						resolveCallback
+						.eventEmitter
+					=	(
+							eventEmitter
+						)
+				);
+
+				return	(
+							resolveCallback
+						);
+			}
+		)
+);
+
+(
+		resolveCallback
+		.getEventEmitter
+	=	(
+			function getEventEmitter( ){
+				return	(
+							resolveCallback
+							.eventEmitter
+						);
+			}
+		)
 );
 
 (
