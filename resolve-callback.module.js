@@ -212,7 +212,7 @@ const resolveCallback = (
 						)
 					||
 						(
-							`[@temporary-reference:${ Date.now( ) }-${ Math.random( ) };]`
+							`[@resolve-callback:temporary-reference:${ Date.now( ) }-${ Math.random( ) };]`
 						)
 				)
 			);
@@ -529,9 +529,6 @@ const resolveCallback = (
 		.setEventEmitter
 	=	(
 			function setEventEmitter( eventEmitter ){
-				if(
-
-				)
 				(
 						resolveCallback
 						.eventEmitter
