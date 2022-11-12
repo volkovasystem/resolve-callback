@@ -466,12 +466,19 @@ const resolveCallback = (
 	}
 );
 
-resolveCallback.configure = (
-	function configure( option ){
+const configureResolveCallback = (
+	function configureResolveCallback( option ){
 		return	(
 					resolveCallback.bind( option )
 				);
 	}
+);
+(
+		resolveCallback
+		.configure
+	=	(
+			configureResolveCallback
+		)
 );
 
 (
