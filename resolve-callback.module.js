@@ -4,10 +4,10 @@
 	@license:module:
 		MIT License
 
-		Copyright (c) 2020-present Richeve S. Bebebdor <richeve.bebedor@gmail.com>
+		Copyright (c) 2020-present Richeve S. Bebedor <richeve.bebedor@gmail.com>
 
 		@license:copyright:
-			Richeve S. Bebebdor
+			Richeve S. Bebedor
 
 			<@license:year-range:2020-present;>
 
@@ -36,6 +36,18 @@
 
 const RESOLVE_CALLBACK = (
 	Symbol( "resolve-callback" )
+);
+
+const CALLBACK_RESOLVED = (
+	Symbol( "callback-resolved" )
+);
+
+const CALLBACK_SCOPE = (
+	Symbol( "callback-scope" )
+);
+
+const CALLBACK_PARAMETER_LIST = (
+	Symbol( "callback-parameter-list" )
 );
 
 const resolveCallback = (
@@ -115,58 +127,323 @@ const resolveCallback = (
 						);
 			}
 
-			return	(
-						new	Proxy(
-								(
-									callback
-								),
+			if(
+					(
+							callback[ CALLBACK_RESOLVED ]
+						===	true
+					)
+			){
+				throw	(
+							new	Error(
+									(
+										[
+											"#invalid-callback-parameter;",
 
+											"invalid callback parameter;",
+											"callback resolved;",
+
+											"@callback:",
+											`${ callback };`
+										]
+									)
+								)
+						);
+			}
+
+			let revocableStatus = (
+				true
+			);
+			if(
+					(
+							typeof
+							this
+						==	"object"
+					)
+				&&
+					(
+							this
+						!==	null
+					)
+			){
+				if(
+						(
 								(
-									{
-										"apply": (
-											function apply( callback, scope, parameterList ){
+										"revocableStatus"
+									in	this
+								)
+							===	true
+						)
+					&&
+						(
+								typeof
+								this.revocableStatus
+							==	"boolean"
+						)
+				){
+					(
+							revocableStatus
+						=	(
+								this.revocableStatus
+							)
+					);
+				}
+			}
+
+			const	{
+						proxy: callbackResolve,
+						revoke: revokeCallback
+					}
+				=	(
+						Proxy
+						.revocable(
+							(
+								callback
+							),
+
+							(
+								{
+									"apply": (
+										function apply(
+											targetCallback,
+											scope,
+											parameterList
+										){
+											try{
+												Object.defineProperty(
+													(
+														targetCallback
+													),
+
+													(
+														CALLBACK_SCOPE
+													),
+
+													(
+														{
+															"value": (
+																scope
+															),
+
+															"configurable": (
+																false
+															),
+
+															"enumerable": (
+																false
+															),
+
+															"writable": (
+																false
+															),
+														}
+													)
+												);
+
+												Object.defineProperty(
+													(
+														targetCallback
+													),
+
+													(
+														CALLBACK_PARAMETER_LIST
+													),
+
+													(
+														{
+															"value": (
+																parameterList
+															),
+
+															"configurable": (
+																false
+															),
+
+															"enumerable": (
+																false
+															),
+
+															"writable": (
+																false
+															),
+														}
+													)
+												);
+
 												return	(
-															Promise
-															.resolve(
-																(
-																	callback
-																	.apply(
-																		(
-																			scope
-																		),
-
-																		(
-																			parameterList
-																		)
-																	)
-																)
-															)
+															callbackResolve
 														);
 											}
-										),
-
-										"get": (
-											function get( callback, property, value, target ){
+											finally{
 												if(
 														(
-																property
-															===	RESOLVE_CALLBACK
+																revocableStatus
+															===	true
 														)
 												){
-													return	(
-																true
-															);
-												}
-												else{
-													return	(
-																callback[ property ]
-															);
+													Object.defineProperty(
+														(
+															targetCallback
+														),
+
+														(
+															CALLBACK_RESOLVED
+														),
+
+														(
+															{
+																"value": (
+																	true
+																),
+
+																"configurable": (
+																	false
+																),
+
+																"enumerable": (
+																	false
+																),
+
+																"writable": (
+																	false
+																),
+															}
+														)
+													);
+
+													revokeCallback( );
 												}
 											}
-										)
-									}
-								)
+										}
+									),
+
+									"get": (
+										function get(
+											targetCallback,
+											property,
+											value,
+											proxyCallback
+										){
+											if(
+													(
+															property
+														===	RESOLVE_CALLBACK
+													)
+											){
+												return	(
+															true
+														);
+											}
+											else
+											if(
+													(
+															property
+														===	"then"
+													)
+											){
+												if(
+														(
+																typeof
+																targetCallback[ CALLBACK_SCOPE ]
+															==	"undefined"
+														)
+													&&
+														(
+																typeof
+																targetCallback[ CALLBACK_PARAMETER_LIST ]
+															==	"undefined"
+														)
+												){
+													throw	(
+																new	Error(
+																		(
+																			[
+																				"#cannot-call-callback;",
+
+																				"undefined scope or parameter list;",
+																			]
+																		)
+																	)
+															);
+												}
+
+												return	(
+															async	function( resolve, reject ){
+																		try{
+																			resolve(
+																				(
+																					await	(
+																								targetCallback
+																								.apply(
+																									(
+																										targetCallback[ CALLBACK_SCOPE ]
+																									),
+
+																									(
+																										targetCallback[ CALLBACK_PARAMETER_LIST ]
+																									)
+																								)
+																							)
+																				)
+																			);
+																		}
+																		catch( error ){
+																			reject( error );
+																		}
+																	}
+														);
+											}
+											else{
+												return	(
+															targetCallback[ property ]
+														);
+											}
+										}
+									),
+
+									"getPrototypeOf": (
+										function getPrototypeOf( targetCallback ){
+											return	(
+														Promise.prototype
+													);
+										}
+									),
+								}
 							)
+						)
+					);
+
+			Object.defineProperty(
+				(
+					callback
+				),
+
+				(
+					"targetCallback"
+				),
+
+				(
+					{
+						"value": (
+							callback
+						),
+
+						"configurable": (
+							false
+						),
+
+						"enumerable": (
+							false
+						),
+
+						"writable": (
+							false
+						),
+					}
+				)
+			);
+
+			return	(
+						callbackResolve
 					);
 		}
 		catch( error ){
@@ -180,7 +457,7 @@ const resolveCallback = (
 										"cannot execute resolve callback;",
 
 										"@error-data:",
-										`${ error };`
+										`${ error.stack };`
 									]
 								)
 							)
@@ -189,4 +466,25 @@ const resolveCallback = (
 	}
 );
 
-module.exports = resolveCallback;
+const configureResolveCallback = (
+	function configureResolveCallback( option ){
+		return	(
+					resolveCallback.bind( option )
+				);
+	}
+);
+(
+		resolveCallback
+		.configure
+	=	(
+			configureResolveCallback
+		)
+);
+
+(
+		module
+		.exports
+	=	(
+			resolveCallback
+		)
+);

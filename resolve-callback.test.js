@@ -382,7 +382,7 @@ const TEST_RESOLVE_CALLBACK = (
 	async	function TEST_RESOLVE_CALLBACK( ){
 				try{
 					const testCallback = (
-						resolveCallback(
+						resolveCallback.configure( { "revocableStatus": false } )(
 							function testCallback( value ){
 								return	(
 											value
@@ -447,7 +447,7 @@ const TEST_RESOLVE_CALLBACK_PROMISE = (
 	function TEST_RESOLVE_CALLBACK( ){
 		try{
 			const testCallback = (
-				resolveCallback(
+				resolveCallback.configure( { "revocableStatus": false } )(
 					function testCallback( value ){
 						return	(
 									value
