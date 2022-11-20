@@ -189,6 +189,62 @@ const resolveCallback = (
 				}
 			}
 
+			let eventTargetStatus = (
+				false
+			);
+			if(
+					(
+							typeof
+							this
+						==	"object"
+					)
+				&&
+					(
+							this
+						!==	null
+					)
+			){
+				if(
+						(
+								(
+										"eventTargetStatus"
+									in	this
+								)
+							===	true
+						)
+					&&
+						(
+								typeof
+								this.eventTargetStatus
+							==	"boolean"
+						)
+				){
+					(
+							eventTargetStatus
+						=	(
+								this.eventTargetStatus
+							)
+					);
+				}
+			}
+
+			let eventTarget = (
+				undefined
+			);
+			if(
+					(
+							eventTargetStatus
+						===	true
+					)
+			){
+				(
+						eventTarget
+					=	(
+							new	EventTarget( )
+						)
+				);
+			}
+
 			const	{
 						proxy: callbackResolve,
 						revoke: revokeCallback
@@ -385,9 +441,59 @@ const resolveCallback = (
 																							)
 																				)
 																			);
+
+																			if(
+																					(
+																							eventTargetStatus
+																						===	true
+																					)
+																			){
+																				eventTarget.dispatchEvent(
+																					(
+																						new	CustomEvent(
+																								(
+																									"done"
+																								),
+
+																								(
+																									{
+																										"detail": (
+																											targetCallback[ CALLBACK_PARAMETER_LIST ]
+																										)
+																									}
+																								)
+																							)
+																					)
+																				);
+																			}
 																		}
 																		catch( error ){
 																			reject( error );
+
+																			if(
+																					(
+																							eventTargetStatus
+																						===	true
+																					)
+																			){
+																				eventTarget.dispatchEvent(
+																					(
+																						new	CustomEvent(
+																								(
+																									"error"
+																								),
+
+																								(
+																									{
+																										"detail": (
+																											error
+																										)
+																									}
+																								)
+																							)
+																					)
+																				);
+																			}
 																		}
 																	}
 														);
