@@ -50,6 +50,26 @@ const CALLBACK_PARAMETER_LIST = (
 	Symbol( "callback-parameter-list" )
 );
 
+const CALLBACK_RESULT = (
+	Symbol( "callback-result" )
+);
+
+const CALLBACK_ERROR = (
+	Symbol( "callback-error" )
+);
+
+const THEN_FIELD_PROCEDURE = (
+	"then"
+);
+
+const ONCE_FIELD_PROCEDURE = (
+	"once"
+);
+
+const TARGET_CALLBACK_FIELD_PROCEDURE = (
+	"targetCallback"
+);
+
 const resolveCallback = (
 	function resolveCallback( callback ){
 		/*;
@@ -87,6 +107,8 @@ const resolveCallback = (
 					@description;
 
 					@tag:#invalid-callback-parameter;
+					@tag:#cannot-call-callback;
+					@tag:#restricted-flow;
 					@tag:#cannot-resolve-callback;
 				@trigger;
 			@definition;
@@ -393,7 +415,7 @@ const resolveCallback = (
 											if(
 													(
 															property
-														===	"then"
+														===	THEN_FIELD_PROCEDURE
 													)
 											){
 												if(
@@ -425,20 +447,50 @@ const resolveCallback = (
 												return	(
 															async	function( resolve, reject ){
 																		try{
+																			Object.defineProperty(
+																				(
+																					targetCallback
+																				),
+
+																				(
+																					CALLBACK_RESULT
+																				),
+
+																				(
+																					{
+																						"value": (
+																							await	(
+																										targetCallback
+																										.apply(
+																											(
+																												targetCallback[ CALLBACK_SCOPE ]
+																											),
+
+																											(
+																												targetCallback[ CALLBACK_PARAMETER_LIST ]
+																											)
+																										)
+																									)
+																						),
+
+																						"configurable": (
+																							false
+																						),
+
+																						"enumerable": (
+																							false
+																						),
+
+																						"writable": (
+																							false
+																						),
+																					}
+																				)
+																			);
+
 																			resolve(
 																				(
-																					await	(
-																								targetCallback
-																								.apply(
-																									(
-																										targetCallback[ CALLBACK_SCOPE ]
-																									),
-
-																									(
-																										targetCallback[ CALLBACK_PARAMETER_LIST ]
-																									)
-																								)
-																							)
+																					targetCallback[ CALLBACK_RESULT ]
 																				)
 																			);
 
@@ -458,7 +510,19 @@ const resolveCallback = (
 																								(
 																									{
 																										"detail": (
-																											targetCallback[ CALLBACK_PARAMETER_LIST ]
+																											{
+																												"scope": (
+																													targetCallback[ CALLBACK_SCOPE ]
+																												),
+
+																												"parameterList": (
+																													targetCallback[ CALLBACK_PARAMETER_LIST ]
+																												),
+
+																												"result": (
+																													targetCallback[ CALLBACK_RESULT ]
+																												),
+																											}
 																										)
 																									}
 																								)
@@ -468,6 +532,36 @@ const resolveCallback = (
 																			}
 																		}
 																		catch( error ){
+																			Object.defineProperty(
+																				(
+																					targetCallback
+																				),
+
+																				(
+																					CALLBACK_ERROR
+																				),
+
+																				(
+																					{
+																						"value": (
+																							error
+																						),
+
+																						"configurable": (
+																							false
+																						),
+
+																						"enumerable": (
+																							false
+																						),
+
+																						"writable": (
+																							false
+																						),
+																					}
+																				)
+																			);
+
 																			reject( error );
 
 																			if(
@@ -486,7 +580,61 @@ const resolveCallback = (
 																								(
 																									{
 																										"detail": (
-																											error
+																											{
+																												"scope": (
+																													targetCallback[ CALLBACK_SCOPE ]
+																												),
+
+																												"parameterList": (
+																													targetCallback[ CALLBACK_PARAMETER_LIST ]
+																												),
+
+																												"error": (
+																													targetCallback[ CALLBACK_ERROR ]
+																												),
+																											}
+																										)
+																									}
+																								)
+																							)
+																					)
+																				);
+																			}
+																		}
+																		finally{
+																			if(
+																					(
+																							eventTargetStatus
+																						===	true
+																					)
+																			){
+																				eventTarget.dispatchEvent(
+																					(
+																						new	CustomEvent(
+																								(
+																									"end"
+																								),
+
+																								(
+																									{
+																										"detail": (
+																											{
+																												"scope": (
+																													targetCallback[ CALLBACK_SCOPE ]
+																												),
+
+																												"parameterList": (
+																													targetCallback[ CALLBACK_PARAMETER_LIST ]
+																												),
+
+																												"result": (
+																													targetCallback[ CALLBACK_RESULT ]
+																												),
+
+																												"error": (
+																													targetCallback[ CALLBACK_ERROR ]
+																												),
+																											}
 																										)
 																									}
 																								)
@@ -496,6 +644,86 @@ const resolveCallback = (
 																			}
 																		}
 																	}
+														);
+											}
+											else
+											if(
+													(
+															property
+														===	ONCE_FIELD_PROCEDURE
+													)
+											){
+												if(
+														(
+																eventTargetStatus
+															===	true
+														)
+												){
+													return	(
+																function once( eventType, eventHandler ){
+																	eventTarget.addEventListener(
+																		(
+																			eventType
+																		),
+
+																		function( event ){
+																			(
+																					(
+																							typeof
+																							eventHandler
+																						==	"function"
+																					)
+																			)	&&
+																			(
+																				eventHandler(
+																					(
+																						event
+																					),
+
+																					(
+																						event.detail
+																					)
+																				)
+																			);
+																		},
+
+																		(
+																			{
+																				"once": (
+																					true
+																				)
+																			}
+																		)
+																	);
+
+																	return	(
+																				proxyCallback
+																			);
+																}
+															)
+												}
+												else{
+													throw	(
+																new Error(
+																		[
+																			"#restricted-flow;",
+
+																			"restricted flow;",
+																			"event target disabled;",
+																		]
+																	)
+															);
+												}
+											}
+											else
+											if(
+													(
+															property
+														===	TARGET_CALLBACK_FIELD_PROCEDURE
+													)
+											){
+												return	(
+															targetCallback
 														);
 											}
 											else{
@@ -517,36 +745,6 @@ const resolveCallback = (
 							)
 						)
 					);
-
-			Object.defineProperty(
-				(
-					callback
-				),
-
-				(
-					"targetCallback"
-				),
-
-				(
-					{
-						"value": (
-							callback
-						),
-
-						"configurable": (
-							false
-						),
-
-						"enumerable": (
-							false
-						),
-
-						"writable": (
-							false
-						),
-					}
-				)
-			);
 
 			return	(
 						callbackResolve
