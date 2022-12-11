@@ -5,13 +5,14 @@
 	"description": "Callback with promise.",
 	"main": "resolve-callback.js",
 	"scripts": {
-		"clean": "npx rimraf node_modules && npx rimraf package-lock.json && npx rimraf .build && npx rimraf .test",
-		"reset": "npm cache clean --force && npm run clean && npx rimraf resolve-callback.js",
-		"bundle": "mkdir .build && npx rollup resolve-callback.module.js --file .build/resolve-callback.bundle.js --format umd --name 'resolveCallback' --compact",
-		"compress": "npx terser .build/resolve-callback.bundle.js --compress --keep-classnames --keep-fnames --output resolve-callback.js",
-		"build": "npm run bundle && npm run compress",
-		"test": "node resolve-callback.test.js",
-		"stage": "npm run reset && npm install && npm run build && npm test && npm run clean",
+		"setup": "source ./tool/setup-module.sh",
+		"clean": "source ./tool/clean-module.sh",
+		"reset": "source ./tool/reset-module.sh",
+		"bundle": "source ./tool/bundle-module.sh",
+		"compress": "source ./tool/compress-module.sh",
+		"build": "source ./tool/build-module.sh",
+		"test": "source ./tool/test-module.sh",
+		"stage": "source ./tool/stage-module.sh",
 		"prepublishOnly": "npm run stage"
 	},
 	"repository": {
