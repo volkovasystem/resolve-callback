@@ -6,6 +6,8 @@
 
 !.npmignore
 
+!.npmrc
+
 !LICENSE
 
 !*.json
